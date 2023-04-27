@@ -2,37 +2,34 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './Table.css';
 
-function Table(props) {
-  const [columns] = useState(Object.keys(props.rows[0]));
-  const [tableHeight, setTableHeight] = useState(props.tableHeight);
+function Table({ rowHeight = 35, tableHeight = 400, rows }) {
+  // State variables for column names and scroll position
+  const [columns] = useState(Object.keys(rows[0]));
+  
+  // Define the initial scroll state with a `top` value of 0, and an `index` and `end`
+  // value based on the `tableHeight` and `rowHeight` props
   const [scroll, setScroll] = useState({
     top: 0,
     index: 0,
-    end: Math.ceil((props.tableHeight * 2) / props.rowHeight),
+    end: Math.ceil((tableHeight * 2) / rowHeight),
   });
 
-  const onScroll = ({ target }) => {
-    const scrollTop = target.scrollTop;
-    const rowHeight = props.rowHeight;
+  // Callback function for handling table scroll events
+  const onScroll = (event) => {
+    const { scrollTop } = event.target;
     const index = Math.floor(scrollTop / rowHeight);
+    const end = index + Math.ceil((tableHeight * 2) / rowHeight);
+    const top = index * rowHeight;
 
-    setScroll((prevScroll) => ({
-      ...prevScroll,
-      index,
-      end: index + Math.ceil((tableHeight * 2) / rowHeight),
-      top: (scrollTop / rowHeight) * rowHeight,
-    }));
+    setScroll({ top, index, end });
   };
 
+  // Helper function for generating table rows
   const generateRows = () => {
-    const rowHeight = props.rowHeight;
-    const rows = props.rows;
-    const index = scroll.index;
-    const end = scroll.end;
     const items = [];
 
-    let i = index;
-    while (i < end && i < rows.length) {
+    // Generate rows based on scroll position and table data
+    for (let i = scroll.index; i < scroll.end && i < rows.length; i++) {
       const rowAttrs = {
         style: {
           position: 'absolute',
@@ -45,26 +42,24 @@ function Table(props) {
         key: i,
       };
 
-      items.push(
-        <tr {...rowAttrs}>
-          {columns.map((column, j) => (
-            <td key={j}>{rows[i][column]}</td>
-          ))}
-        </tr>
-      );
+      const cells = columns.map((column, j) => (
+        <td key={j}>{rows[i][column]}</td>
+      ));
 
-      i++;
+      items.push(<tr {...rowAttrs}>{cells}</tr>);
     }
 
     return items;
   };
 
+  // Attributes for the table element
   const tableAttrs = {
     className: 'table-content',
     style: { height: tableHeight },
-    onScroll: onScroll,
+    onScroll,
   };
 
+  // Attributes for the tbody element
   const tbodyAttr = {
     style: {
       position: 'relative',
@@ -75,11 +70,13 @@ function Table(props) {
     },
   };
 
+  // Render the table component
   return (
-    <div className={'wrapper'}>
+    <div className="wrapper">
       <table>
         <thead>
-          <tr className={'tr'}>
+          <tr className="tr">
+            {/* Render table column headers */}
             {columns.map((name, i) => (
               <th key={i}>{name}</th>
             ))}
@@ -87,20 +84,17 @@ function Table(props) {
         </thead>
       </table>
       <table {...tableAttrs}>
+        {/* Render table body */}
         <tbody {...tbodyAttr}>{generateRows()}</tbody>
       </table>
     </div>
   );
 }
 
-Table.defaultProps = {
-  rowHeight: 35,
-  tableHeight: 400,
-};
-
+// Prop types for the Table component
 Table.propTypes = {
-  rowHeight: PropTypes.number.isRequired,
-  tableHeight: PropTypes.number.isRequired,
+  rowHeight: PropTypes.number,
+  tableHeight: PropTypes.number,
   rows: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
