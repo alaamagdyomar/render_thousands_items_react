@@ -35,4 +35,7 @@ Pesudo code :👍
 
 
 👍 after finishing that visualize process there are steps to move in the next steps and i search for resources and found that link in order to move in the next steps :
-https://dev.to/nishanbajracharya/what-i-learned-from-building-my-own-virtualized-list-library-for-react-45ik
+
+1 - https://dev.to/nishanbajracharya/what-i-learned-from-building-my-own-virtualized-list-library-for-react-45ik
+
+2 - https://blog.logrocket.com/rendering-large-lists-react-virtualized/
