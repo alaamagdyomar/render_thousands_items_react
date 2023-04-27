@@ -5,6 +5,8 @@ import './Table.css';
 function Table({ rowHeight = 35, tableHeight = 400, rows }) {
   // State variables for column names and scroll position
   const [columns] = useState(Object.keys(rows[0]));
+  const [editedRows, setEditedRows] = useState({});
+  const [tableRows, setTableRows] = useState(rows); 
   
   // Define the initial scroll state with a `top` value of 0, and an `index` and `end`
   // value based on the `tableHeight` and `rowHeight` props
@@ -24,32 +26,64 @@ function Table({ rowHeight = 35, tableHeight = 400, rows }) {
     setScroll({ top, index, end });
   };
 
+  // Define a function to handle row updates
+    const handleRowUpdate = (index, updatedRow) => {
+      // Create a copy of tableRows to avoid mutating state directly
+      const newTableRows = [...tableRows];
+      // Replace the updated row in the copied array
+      newTableRows[index] = updatedRow;
+      // Update the state with the new array
+      setTableRows(newTableRows);
+    };
+
   // Helper function for generating table rows
   const generateRows = () => {
-    const items = [];
+      const items = [];
 
-    // Generate rows based on scroll position and table data
-    for (let i = scroll.index; i < scroll.end && i < rows.length; i++) {
-      const rowAttrs = {
-        style: {
-          position: 'absolute',
-          top: i * rowHeight,
-          left: 0,
-          height: rowHeight,
-          lineHeight: `${rowHeight}px`,
-        },
-        className: `tr ${i % 2 === 0 ? 'tr-odd' : 'tr-even'}`,
-        key: i,
-      };
+      for (let i = scroll.index; i < scroll.end && i < tableRows.length; i++) {
+        const rowAttrs = {
+          style: {
+            position: 'absolute',
+            top: i * rowHeight,
+            left: 0,
+            height: rowHeight,
+            lineHeight: `${rowHeight}px`,
+          },
+          className: `tr ${i % 2 === 0 ? 'tr-odd' : 'tr-even'}`,
+          key: i,
+          onClick: () => setEditedRows({ ...editedRows, [i]: true }),
+        };
+        const handleBlur = () => setEditedRows({ ...editedRows, [i]: false });
+        const handleKeyPress = (event) => {
+          if (event.key === 'Enter') {
+            setEditedRows({ ...editedRows, [i]: false });
+          }
+        };
+        const cells = columns.map((column, j) => {
+          if (editedRows[i]) {
+            return (
+              <td key={j}>
+                <input
+                  type="text"
+                  defaultValue={tableRows[i][column]}
+                  onBlur={() => handleBlur(i)}
+                  onKeyPress={handleKeyPress}
+                  onChange={(event) => {
+                    const updatedRow = { ...tableRows[i], [column]: event.target.value };
+                    handleRowUpdate(i, updatedRow);
+                  }}
+                />
+              </td>
+            );
+          } else {
+            return <td key={j}>{tableRows[i][column]}</td>;
+          }
+        });
 
-      const cells = columns.map((column, j) => (
-        <td key={j}>{rows[i][column]}</td>
-      ));
+        items.push(<tr {...rowAttrs}>{cells}</tr>);
+      }
 
-      items.push(<tr {...rowAttrs}>{cells}</tr>);
-    }
-
-    return items;
+      return items;
   };
 
   // Attributes for the table element
