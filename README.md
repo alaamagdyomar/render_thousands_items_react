@@ -1,5 +1,13 @@
 # render_thousands_items_react
 
+Run the application steps:
+
+    1 - npm install 
+    2 - npm start
+
+
+    ................................................................................
+
 The structure that i will build 👍
 
 i will build a table component that holds (10,000)thousands of items without the hit with the bad performance that caused from each rendering  
@@ -23,3 +31,8 @@ Pesudo code :👍
 // 4- Changed the generateRows function to use a for loop instead of a while loop, as it is generally considered more readable.
 // 5- Moved the cells array creation into a separate variable to make the code more concise.
 // 6- Removed the default prop for rowHeight because it's already declared in the prop types.
+
+
+
+👍 after finishing that visualize process there are steps to move in the next steps and i search for resources and found that link in order to move in the next steps :
+https://dev.to/nishanbajracharya/what-i-learned-from-building-my-own-virtualized-list-library-for-react-45ik
