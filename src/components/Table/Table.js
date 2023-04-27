@@ -1,135 +1,107 @@
-import React ,{Component} from 'react'
-import PropTypes from 'prop-types'
-import './Table.css'
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import './Table.css';
 
-class Table extends Component {
-  constructor(props) {
-    // Initial props:
-    super(props)
+function Table(props) {
+  const [columns] = useState(Object.keys(props.rows[0]));
+  const [tableHeight, setTableHeight] = useState(props.tableHeight);
+  const [scroll, setScroll] = useState({
+    top: 0,
+    index: 0,
+    end: Math.ceil((props.tableHeight * 2) / props.rowHeight),
+  });
 
-    // Initial state:
-    this.state = {
-      columns: Object.keys(this.props.rows[0]),
-      tableHeight: (this.props.rowHeight * this.props.rows.length),
-      scroll: {
-        top: 0,
-        index: 0,
-        end: Math.ceil((this.props.tableHeight * 2) / this.props.rowHeight)
-      }
-    }
+  const onScroll = ({ target }) => {
+    const scrollTop = target.scrollTop;
+    const rowHeight = props.rowHeight;
+    const index = Math.floor(scrollTop / rowHeight);
 
-    // Event handlers:
-    this.onScroll = this.onScroll.bind(this)
-    this.scrollInterval = null
-  }
+    setScroll((prevScroll) => ({
+      ...prevScroll,
+      index,
+      end: index + Math.ceil((tableHeight * 2) / rowHeight),
+      top: (scrollTop / rowHeight) * rowHeight,
+    }));
+  };
 
-  onScroll({ target }) {
-    let state = this.state;
+  const generateRows = () => {
+    const rowHeight = props.rowHeight;
+    const rows = props.rows;
+    const index = scroll.index;
+    const end = scroll.end;
+    const items = [];
 
-    let scrollTop = target.scrollTop
-    let rowHeight = this.props.rowHeight
-    let tableHeight = this.props.tableHeight
-    let index = Math.floor(scrollTop / rowHeight)
-
-    state.scroll.index = index
-    state.scroll.end = index + Math.ceil((tableHeight * 2) / rowHeight)
-    state.scroll.top = (scrollTop / rowHeight) * rowHeight
-
-    this.setState(state);
-  }
-
-  generateRows() {
-    let columns = this.state.columns
-    let rowHeight = this.props.rowHeight
-    let rows = this.props.rows
-    let index = this.state.scroll.index
-    let end = this.state.scroll.end
-    let items = []
-
-    do {
-      if (index >= rows.length) {
-        index = rows.length
-        break
-      }
-
+    let i = index;
+    while (i < end && i < rows.length) {
       const rowAttrs = {
         style: {
-          position: "absolute",
-          top: (index * rowHeight),
+          position: 'absolute',
+          top: i * rowHeight,
           left: 0,
           height: rowHeight,
-          lineHeight: `${rowHeight}px`
+          lineHeight: `${rowHeight}px`,
         },
-        className: `tr ${(index % 2) === 0 ? 'tr-odd' : 'tr-even'}`
-      }
+        className: `tr ${i % 2 === 0 ? 'tr-odd' : 'tr-even'}`,
+        key: i,
+      };
 
       items.push(
-        <tr {...rowAttrs} key={index}>
-          {columns.map((column, i) =>
-            <td key={i}>
-              {rows[index][column]}
-            </td>
-          )}
+        <tr {...rowAttrs}>
+          {columns.map((column, j) => (
+            <td key={j}>{rows[i][column]}</td>
+          ))}
         </tr>
-      )
+      );
 
-      index++
-    } while (index < end)
-
-      return items
-  }
-
-  render() {
-    const tableHeight = (this.props.tableHeight > this.state.tableHeight)
-    ? this.state.tableHeight + 2
-    : this.props.tableHeight
-
-    const tableAttrs = {
-      className: 'table-content',
-      style: { height: tableHeight },
-      onScroll: this.onScroll
+      i++;
     }
 
-    const tbodyAttr = {
-      style: {
-        position: "relative",
-        display: 'inline-block',
-        height: this.state.tableHeight,
-        maxHeight: this.state.tableHeight,
-        width: "100%"
-      }
-    }
-    return (
-      <div className={"wrapper"}>
-        <table>
-          <thead>
-            <tr className={'tr'}>
-              {this.state.columns.map((name, i) =>
-                <th key={i}>{name}</th>
-              )}
-            </tr>
-          </thead>
-        </table>
-        <table {...tableAttrs}>
-          <tbody {...tbodyAttr}>
-            {this.generateRows()}
-          </tbody>
-        </table>
-      </div>
-    )
-  }
+    return items;
+  };
+
+  const tableAttrs = {
+    className: 'table-content',
+    style: { height: tableHeight },
+    onScroll: onScroll,
+  };
+
+  const tbodyAttr = {
+    style: {
+      position: 'relative',
+      display: 'inline-block',
+      height: tableHeight,
+      maxHeight: tableHeight,
+      width: '100%',
+    },
+  };
+
+  return (
+    <div className={'wrapper'}>
+      <table>
+        <thead>
+          <tr className={'tr'}>
+            {columns.map((name, i) => (
+              <th key={i}>{name}</th>
+            ))}
+          </tr>
+        </thead>
+      </table>
+      <table {...tableAttrs}>
+        <tbody {...tbodyAttr}>{generateRows()}</tbody>
+      </table>
+    </div>
+  );
 }
 
 Table.defaultProps = {
   rowHeight: 35,
-  tableHeight: 200
-}
+  tableHeight: 400,
+};
 
 Table.propTypes = {
   rowHeight: PropTypes.number.isRequired,
   tableHeight: PropTypes.number.isRequired,
-  rows: PropTypes.arrayOf(PropTypes.object).isRequired
-}
+  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
-
-export default Table
+export default Table;
